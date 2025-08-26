@@ -11,6 +11,7 @@ from celery import shared_task
 from .serializers import ListingSerializer, BookingSerializer, PaymentSerializer, UserSerializer, \
     LocationSerializer
 from .models import User, Listing, Booking, Payment, PaymentStatus, Location
+from .tasks import send_booking_confirmation_email
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -34,6 +35,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         if guest.is_anonymous:
             guest = serializer.validated_data.get('guest')
         booking = serializer.save(guest=guest, listing=listing)
+        send_booking_confirmation_email.delay(booking.id)
         try:
             create_chapa_payment(booking)
         except requests.RequestException as e:
