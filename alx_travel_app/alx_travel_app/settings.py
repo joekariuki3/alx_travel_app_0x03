@@ -139,3 +139,18 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'listings.User'
+
+# celery settings
+rb_user = env('RABBITMQ_USERNAME')
+rb_password = env('RABBITMQ_PASSWORD')
+rb_host = env('RABBITMQ_HOST')
+rb_port = env('RABBITMQ_PORT')
+CELERY_BROKER_URL = f"amqp://{rb_user}:{rb_password}@{rb_host}:{rb_port}//"
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+# Email settings console
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
