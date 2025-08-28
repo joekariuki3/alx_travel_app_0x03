@@ -1,0 +1,11 @@
+id,username,first_name,last_name,email,is_staff,is_active,date_joined
+d6a9f926-d882-42d6-9f0b-1df9d44c7c10,jdoe,John,Doe,jdoe@example.com,True,True,2024-07-01T09:15:00Z
+5fb5d08b-6d5d-4f3e-b25a-62f64a64a991,asmith,Alice,Smith,asmith@example.com,False,True,2024-07-02T10:20:00Z
+b9422eec-95e5-41c2-b74a-8a388b1d0f35,bjones,Bob,Jones,bjones@example.com,False,True,2024-07-03T11:25:00Z
+ea56be6e-b858-43c1-9011-18736d4a29fa,cwhite,Carol,White,cwhite@example.com,True,True,2024-07-04T12:30:00Z
+c4f4a63f-d0c6-40fc-aef2-3eb792a7eb2e,dblack,Dan,Black,dblack@example.com,False,False,2024-07-05T13:35:00Z
+0dba703f-b32c-4e80-bef2-9d0b9e10476d,emartin,Emma,Martin,emartin@example.com,True,True,2024-07-06T14:40:00Z
+2c29ab3a-f4f9-45a6-9d68-9a5f46eaa6a2,flee,Felix,Lee,flee@example.com,False,True,2024-07-07T15:45:00Z
+92829e1d-5a4f-4d0a-9526-839f1e78eaa4,gkim,Grace,Kim,gkim@example.com,True,True,2024-07-08T16:50:00Z
+d2f9d88d-097e-4cb0-8f59-f3f67b885de5,hyoung,Henry,Young,hyoung@example.com,False,True,2024-07-09T17:55:00Z
+a9cfb3a1-27d2-4f59-a5f0-64e50f9cb104,iwright,Ivy,Wright,iwright@example.com,True,True,2024-07-10T18:00:00Z
