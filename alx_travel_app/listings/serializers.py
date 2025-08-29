@@ -16,8 +16,14 @@ class ListingSerializer(serializers.ModelSerializer):
 class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
-        fields = ['id', 'start_date', 'end_date', 'total_price', 'status', 'payment_url', 'guest', 'listing', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'payment_url', 'created_at', 'updated_at']
+        fields = ['id', 'start_date', 'end_date', 'status', 'total_price', 'payment_url',  'guest', 'listing', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'payment_url', 'total_price', 'status', 'created_at', 'updated_at']
+
+    def validate_booking_days(self, days):
+        if days < 1:
+            raise serializers.ValidationError("Booking days must be at least 1 day long.")
+        return days
+
 
 class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
