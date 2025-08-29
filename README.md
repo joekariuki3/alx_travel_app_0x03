@@ -2,7 +2,7 @@
 
 ## Overview
 
-ALX Travel App is a Django-based web application for managing travel accommodations. The platform connects hosts with guests, allowing users to list properties for rent, make bookings, and leave reviews.
+ALX Travel App is a Django-based web application for managing travel accommodations. The platform connects hosts with guests, allowing hosts to list properties and guests to make bookings and leave reviews.
 
 ## Features
 
@@ -54,37 +54,48 @@ python -m virtualenv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-3. Install dependencies:
+3. Install dependencies (from pyproject.toml):
 
 ```bash
-pip install -r alx_travel_app/alx_travel_app/requirement.txt
+pip install --upgrade pip
+pip install .
 ```
 
-4. Create a `.env` file in `alx_travel_app/alx_travel_app/` (same directory as settings.py) with at least:
+4. Create a `.env` file in `alx_travel_app/` (same directory as manage.py) with at least:
 
 ```
 # Core
 SECRET_KEY=your_secret_key
 DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
+ALLOWED_HOSTS=*
 
 # Database (MySQL)
 DATABASE_NAME=alx_travel
-DATABASE_HOST=localhost
+DATABASE_HOST=127.0.0.1
 DATABASE_USER=dbuser
 DATABASE_PASSWORD=dbpassword
 DATABASE_PORT=3306
 
+# Payment (Chapa)
+CHAPA_SECRET_KEY=your_chapa_secret
+CHAPA_BASE_URL=https://api.chapa.co/v1
+APP_URL=http://127.0.0.1
+APP_PORT=8000
+
 # RabbitMQ
 RABBITMQ_USERNAME=guest
 RABBITMQ_PASSWORD=guest
-RABBITMQ_HOST=localhost
+RABBITMQ_HOST=127.0.0.1
 RABBITMQ_PORT=5672
+
+# Celery Results
+CELERY_RESULT_BACKEND=django-db
+CELERY_RESULT_EXTENDED=True
 ```
 
-Note: settings.py reads the .env from the project directory (alx_travel_app/alx_travel_app). If you prefer SQLite for quick local runs, you can change DATABASES in settings.py to use sqlite3, but by default it's MySQL.
+Note: settings.py reads the .env from `BASE_DIR` which is the project directory `alx_travel_app/`. By default the database is MySQL.
 
-5. Apply migrations:
+5. Apply migrations (including django-celery-results):
 
 ```bash
 python alx_travel_app/manage.py migrate
@@ -110,7 +121,7 @@ python alx_travel_app/manage.py runserver
 
 ## Running Celery
 
-Celery is used for async tasks (e.g., sending booking confirmation emails).
+Celery is used for async tasks (e.g., sending booking/payment confirmation emails).
 
 - Ensure RabbitMQ is running and env vars are set as above.
 - Start a worker in a separate terminal:
@@ -125,10 +136,28 @@ If you plan to use periodic tasks, also run beat (not configured by default):
 celery -A alx_travel_app beat --loglevel=info
 ```
 
+### Task Results Storage
+This project uses django-celery-results, saving task results to your database.
+- Make sure migrations are applied.
+- Inspect recent results with a SQL query:
+
+```sql
+SELECT id, task_id, task_name, status, date_done
+FROM django_celery_results_taskresult
+ORDER BY date_done DESC
+LIMIT 10;
+```
+
 ## API Endpoints & Docs
 
 - Base API path: `/api/` (see `listings/urls.py` for available endpoints)
 - Swagger UI: `/swagger/` (served via project urls)
+- Payment verification callback: `GET /api/payment/verify/<tx_ref>/` (invoked by Chapa return flow)
+
+## Email
+
+- Email backend is set to console for development, so emails are printed to the server/worker console.
+- Optionally set `DEFAULT_FROM_EMAIL` in settings or via env if you change to a real email backend.
 
 ## Development
 
@@ -145,7 +174,9 @@ This project follows PEP 8 coding standards for Python.
 ## Troubleshooting
 
 - MySQL connection errors: verify DATABASE_* env vars and that the DB user has privileges.
-- Celery connection errors: verify RabbitMQ is running and RABBITMQ_* env vars.
+- Celery connection errors: verify RabbitMQ is running and RABBITMQ_* env vars. Ensure your RabbitMQ user exists and has permissions; defaults are guest/guest on localhost only.
+- Task results not appearing: run `python alx_travel_app/manage.py migrate django_celery_results` and confirm CELERY_RESULT_BACKEND=django-db in .env.
+- Emails not sent: in development they are printed to console; for real emails configure EMAIL_BACKEND and DEFAULT_FROM_EMAIL.
 - Custom user model: AUTH_USER_MODEL is `listings.User`; ensure migrations are applied before creating superuser.
 
 ## License
