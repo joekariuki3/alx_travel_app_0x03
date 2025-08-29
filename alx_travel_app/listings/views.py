@@ -1,17 +1,14 @@
 import uuid
 import os
 import requests
-from django.core.mail import send_mail
-from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view
-from celery import shared_task
 from .serializers import ListingSerializer, BookingSerializer, PaymentSerializer, UserSerializer, \
     LocationSerializer
-from .models import User, Listing, Booking, Payment, PaymentStatus, Location
-from .tasks import send_booking_confirmation_email
+from .models import User, Listing, Booking, Payment, PaymentStatus, Location, BookingStatus
+from .tasks import send_booking_confirmation_email, send_payment_confirmation_email
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -34,7 +31,17 @@ class BookingViewSet(viewsets.ModelViewSet):
         listing = serializer.validated_data.get('listing')
         if guest.is_anonymous:
             guest = serializer.validated_data.get('guest')
-        booking = serializer.save(guest=guest, listing=listing)
+        start_date = serializer.validated_data.get('start_date')
+        end_date = serializer.validated_data.get('end_date')
+        total_days = serializer.validate_booking_days((end_date - start_date).days)
+        total_price = listing.price_per_night * total_days
+
+        booking = serializer.save(
+            guest=guest,
+            listing=listing,
+            total_price=total_price,
+            status=BookingStatus.PENDING
+        )
         send_booking_confirmation_email.delay(booking.id)
         try:
             create_chapa_payment(booking)
@@ -91,14 +98,6 @@ def create_chapa_payment(booking):
             amount=booking.total_price,
         )
     return chapa_data
-
-
-
-@shared_task
-def send_payment_confirmation_email(user_email, booking_id):
-    subject = "Booking Payment Confirmation"
-    message = f"Your payment for booking {booking_id} was successful. Thank you for booking with us!"
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user_email])
 
 
 @api_view(["GET"])
