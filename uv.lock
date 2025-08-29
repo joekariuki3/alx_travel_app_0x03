@@ -17,6 +17,7 @@ dependencies = [
     { name = "click-plugins" },
     { name = "click-repl" },
     { name = "django" },
+    { name = "django-celery-results" },
     { name = "django-cors-headers" },
     { name = "django-environ" },
     { name = "djangorestframework" },
@@ -54,6 +55,7 @@ requires-dist = [
     { name = "click-plugins", specifier = "==1.1.1.2" },
     { name = "click-repl", specifier = "==0.3.0" },
     { name = "django", specifier = "==5.2.4" },
+    { name = "django-celery-results", specifier = ">=2.6.0" },
     { name = "django-cors-headers", specifier = "==4.7.0" },
     { name = "django-environ", specifier = "==0.12.0" },
     { name = "djangorestframework", specifier = "==3.16.0" },
@@ -331,6 +333,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/9c/7e/034f0f9fb10c029a02daaf44d364d6bf2eced8c73f0d38c69da359d26b01/django-5.2.4.tar.gz", hash = "sha256:a1228c384f8fa13eebc015196db7b3e08722c5058d4758d20cb287503a540d8f", size = 10831909, upload-time = "2025-07-02T18:47:39.19Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/14/ae/706965237a672434c8b520e89a818e8b047af94e9beb342d0bee405c26c7/django-5.2.4-py3-none-any.whl", hash = "sha256:60c35bd96201b10c6e7a78121bd0da51084733efa303cc19ead021ab179cef5e", size = 8302187, upload-time = "2025-07-02T18:47:35.373Z" },
+]
+
+[[package]]
+name = "django-celery-results"
+version = "2.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "celery" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/b5/9966c28e31014c228305e09d48b19b35522a8f941fe5af5f81f40dc8fa80/django_celery_results-2.6.0.tar.gz", hash = "sha256:9abcd836ae6b61063779244d8887a88fe80bbfaba143df36d3cb07034671277c", size = 83985, upload-time = "2025-04-10T08:23:52.677Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2c/da/70f0f3c5364735344c4bc89e53413bcaae95b4fc1de4e98a7a3b9fb70c88/django_celery_results-2.6.0-py3-none-any.whl", hash = "sha256:b9ccdca2695b98c7cbbb8dea742311ba9a92773d71d7b4944a676e69a7df1c73", size = 38351, upload-time = "2025-04-10T08:23:49.965Z" },
 ]
 
 [[package]]
