@@ -10,17 +10,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Take environment variables from .env file
 env.read_env(os.path.join(BASE_DIR, '.env'))
 
+# ENVIRONMENT either development, testing or production
+ENVIRONMENT = env('ENVIRONMENT', default='development').upper()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY')
+
+SECRET_KEY = env(f'{ENVIRONMENT}_SECRET_KEY', default=os.urandom(256).hex())
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = env.bool(f'{ENVIRONMENT}_DEBUG', default=False)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+ALLOWED_HOSTS = env.list(f'{ENVIRONMENT}_ALLOWED_HOSTS', default=[])
 
 
 # Application definition
@@ -77,11 +80,11 @@ WSGI_APPLICATION = 'alx_travel_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DATABASE_NAME'),
-        'HOST': env('DATABASE_HOST'),
-        'USER': env('DATABASE_USER'),
-        'PASSWORD': env('DATABASE_PASSWORD'),
-        'PORT': env('DATABASE_PORT'),
+        'NAME': env(f'{ENVIRONMENT}_DATABASE_NAME'),
+        'HOST': env(f'{ENVIRONMENT}_DATABASE_HOST'),
+        'USER': env(f'{ENVIRONMENT}_DATABASE_USER'),
+        'PASSWORD': env(f'{ENVIRONMENT}_DATABASE_PASSWORD'),
+        'PORT': env(f'{ENVIRONMENT}_DATABASE_PORT'),
     },
 }
 
@@ -130,17 +133,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'listings.User'
 
 # celery settings
-rb_user = env('RABBITMQ_USERNAME', default='guest')
-rb_password = env('RABBITMQ_PASSWORD', default='guest')
-rb_host = env('RABBITMQ_HOST', default='localhost')
-rb_port = env('RABBITMQ_PORT', default='5672')
+rb_user = env(f'{ENVIRONMENT}_RABBITMQ_USERNAME', default='guest')
+rb_password = env(f'{ENVIRONMENT}_RABBITMQ_PASSWORD', default='guest')
+rb_host = env(f'{ENVIRONMENT}_RABBITMQ_HOST', default='localhost')
+rb_port = env(f'{ENVIRONMENT}_RABBITMQ_PORT', default='5672')
 CELERY_BROKER_URL = f"amqp://{rb_user}:{rb_password}@{rb_host}:{rb_port}//"
-CELERY_RESULT_BACKEND = env('CELERY_RESULT_BACKEND', default='django-db')
+CELERY_RESULT_BACKEND = env(f'{ENVIRONMENT}_CELERY_RESULT_BACKEND', default='django-db')
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
-CELERY_RESULT_EXTENDED = env.bool('CELERY_RESULT_EXTENDED', default=True)
+CELERY_RESULT_EXTENDED = env.bool(f'{ENVIRONMENT}_CELERY_RESULT_EXTENDED', default=True)
 
 # Email settings console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
