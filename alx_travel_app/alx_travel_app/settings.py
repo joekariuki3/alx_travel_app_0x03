@@ -95,11 +95,21 @@ DEVELOPMENT_DATABASE = {
     },
 }
 # production db details
+# PRODUCTION_DATABASE = {
+#     'default': dj_database_url.config(
+#         default=f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}',
+#         conn_max_age=600
+#     )
+# }
 PRODUCTION_DATABASE = {
-    'default': dj_database_url.config(
-        default=f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}',
-        conn_max_age=600
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': db_name,
+        'HOST': db_host,
+        'USER': db_user,
+        'PASSWORD': db_password,
+        'PORT': db_port,
+    },
 }
 
 TESTING_DATABASE = {
