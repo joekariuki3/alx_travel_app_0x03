@@ -1,6 +1,7 @@
 from pathlib import Path
 import environ
 import os
+import dj_database_url
 
 env = environ.Env()
 
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -76,18 +78,37 @@ WSGI_APPLICATION = 'alx_travel_app.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+db_name = env(f'{ENVIRONMENT}_DATABASE_NAME')
+db_user = env(f'{ENVIRONMENT}_DATABASE_USER')
+db_password = env(f'{ENVIRONMENT}_DATABASE_PASSWORD')
+db_host = env(f'{ENVIRONMENT}_DATABASE_HOST')
+db_port = env(f'{ENVIRONMENT}_DATABASE_PORT')
 
-DATABASES = {
+DEVELOPMENT_DATABASE = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': env(f'{ENVIRONMENT}_DATABASE_NAME'),
-        'HOST': env(f'{ENVIRONMENT}_DATABASE_HOST'),
-        'USER': env(f'{ENVIRONMENT}_DATABASE_USER'),
-        'PASSWORD': env(f'{ENVIRONMENT}_DATABASE_PASSWORD'),
-        'PORT': env(f'{ENVIRONMENT}_DATABASE_PORT'),
+        'NAME': db_name,
+        'HOST': db_host,
+        'USER': db_user,
+        'PASSWORD': db_password,
+        'PORT': db_port,
     },
 }
+# production db details
+PRODUCTION_DATABASE = {
+    'default': dj_database_url.config(
+        default=f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}',
+        conn_max_age=600
+    )
+}
 
+TESTING_DATABASE = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+    }
+}
+
+DATABASES = DEVELOPMENT_DATABASE if ENVIRONMENT == 'DEVELOPMENT' else PRODUCTION_DATABASE if ENVIRONMENT == 'PRODUCTION' else TESTING_DATABASE
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -124,6 +145,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+if not DEBUG and ENVIRONMENT == 'PRODUCTION':
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
