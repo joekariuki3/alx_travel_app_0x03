@@ -2,6 +2,7 @@ from pathlib import Path
 import environ
 import os
 import dj_database_url
+from datetime import timedelta
 
 env = environ.Env()
 
@@ -103,6 +104,7 @@ DEVELOPMENT_DATABASE = {
 # }
 PRODUCTION_DATABASE = {
     'default': {
+        # 'ENGINE': 'django.db.backends.postgresql',
         'ENGINE': 'django.db.backends.mysql',
         'NAME': db_name,
         'HOST': db_host,
@@ -181,3 +183,17 @@ CELERY_RESULT_EXTENDED = env.bool(f'{ENVIRONMENT}_CELERY_RESULT_EXTENDED', defau
 
 # Email settings console
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# rest authentication
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'SIGNING_KEY': SECRET_KEY,
+    'AUTH_HEADER_TYPES': ('Bearer',), # "Bearer <Token>"
+}
