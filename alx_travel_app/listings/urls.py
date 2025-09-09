@@ -1,5 +1,5 @@
 from .views import ListingViewSet, BookingViewSet, verify_payment, UserViewSet, LocationViewSet, \
-    PaymentListView
+    PaymentListView, RoleViewSet
 from rest_framework_nested import routers
 from django.urls import path
 
@@ -9,7 +9,7 @@ router.register('users', UserViewSet)
 router.register('locations', LocationViewSet)
 router.register('listings', ListingViewSet)
 router.register('bookings', BookingViewSet)
-
+router.register('roles', RoleViewSet)
 urlpatterns = [
     *router.urls,
     path("payments/", PaymentListView.as_view(), name="payment_list"),
