@@ -1,11 +1,37 @@
 from rest_framework import serializers
-from .models import User, Listing, Booking, Payment, Location
+from .models import User, Listing, Booking, Payment, Location, Role, UserRole
+
+class RoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Role
+        fields = ['id', 'name', 'description']
+        read_only_fields = ['id',]
+        extra_kwargs = {
+            'name': {'required': True},
+        }
+
+    def validate_name(self, name):
+        if Role.objects.filter(name=name).exists():
+            raise serializers.ValidationError(f"Role: {name} already exists.")
+        elif name not in [UserRole.HOST, UserRole.GUEST]:
+            raise serializers.ValidationError(f"Role name must be either '{UserRole.HOST}' or '{UserRole.GUEST}'.")
+        return name
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name' , 'username', 'email', 'phone_number']
+        fields = ['id', 'first_name', 'last_name' , 'username', 'email', 'phone_number', 'role', "password",]
         read_only_fields = ['id']
+        extra_kwargs = {'password': {'write_only': True, 'required': True}}
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance
+
 
 class ListingSerializer(serializers.ModelSerializer):
     class Meta:
