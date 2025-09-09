@@ -6,13 +6,28 @@ from rest_framework import viewsets
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view
 from .serializers import ListingSerializer, BookingSerializer, PaymentSerializer, UserSerializer, \
-    LocationSerializer
-from .models import User, Listing, Booking, Payment, PaymentStatus, Location, BookingStatus
+    LocationSerializer, RoleSerializer
+from .models import User, Listing, Booking, Payment, PaymentStatus, Location, BookingStatus, Role
 from .tasks import send_booking_confirmation_email, send_payment_confirmation_email
+
+class RoleViewSet(viewsets.ModelViewSet):
+    queryset = Role.objects.all()
+    serializer_class = RoleSerializer
+
+    def perform_create(self, serializer):
+        new_role = serializer.validated_data.get('name').lower()
+        serializer.validate_name(new_role)
+        serializer.save()
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+
+    def get_queryset(self):
+        # Filter by authenticated user
+        if self.request.user.is_anonymous:
+            return self.queryset.none()
+        return self.queryset.filter(id=self.request.user.id)
 
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
@@ -25,6 +40,12 @@ class ListingViewSet(viewsets.ModelViewSet):
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+
+    def get_queryset(self):
+        # Filter by authenticated user
+        if self.request.user.is_anonymous:
+            return self.queryset.none()
+        return self.queryset.filter(guest=self.request.user)
 
     def perform_create(self, serializer):
         guest = self.request.user
@@ -52,6 +73,12 @@ class BookingViewSet(viewsets.ModelViewSet):
 class PaymentListView(ListAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+
+    def get_queryset(self):
+        # Filter by authenticated user
+        if self.request.user.is_anonymous:
+            return self.queryset.none()
+        return self.queryset.filter(booking__guest=self.request.user)
 
 def create_chapa_payment(booking):
     secret_key = os.environ.get("CHAPA_SECRET_KEY")
