@@ -2,12 +2,22 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from uuid import uuid4
 
+class UserRole(models.TextChoices):
+    HOST = 'host'
+    GUEST = 'guest'
+
+class Role(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True)
+
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     phone_number = models.CharField(max_length=20, blank=True)
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, blank=True, null=True)
 
     def __str__(self):
-        return self.username
+        return self.username, self.role
 
 
 class Location(models.Model):
