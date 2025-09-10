@@ -2,13 +2,18 @@ import uuid
 import os
 import requests
 from django.http import JsonResponse
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.generics import ListAPIView
 from rest_framework.decorators import api_view
+from rest_framework.status import HTTP_205_RESET_CONTENT, HTTP_400_BAD_REQUEST
+from rest_framework.views import APIView
 from .serializers import ListingSerializer, BookingSerializer, PaymentSerializer, UserSerializer, \
     LocationSerializer, RoleSerializer
 from .models import User, Listing, Booking, Payment, PaymentStatus, Location, BookingStatus, Role
 from .tasks import send_booking_confirmation_email, send_payment_confirmation_email
+from rest_framework_simplejwt.tokens import RefreshToken
+from .permissions import IsHost
+
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()
@@ -19,15 +24,41 @@ class RoleViewSet(viewsets.ModelViewSet):
         serializer.validate_name(new_role)
         serializer.save()
 
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "User registered successfully.",
+                "data": serializer.data
+            },
+            status=HTTP_205_RESET_CONTENT)
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Filter by authenticated user
-        if self.request.user.is_anonymous:
-            return self.queryset.none()
         return self.queryset.filter(id=self.request.user.id)
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data.get("refresh_token")
+            if not refresh_token:
+                return JsonResponse({"success": False, "error": "'refresh_token' is required."}, status=HTTP_400_BAD_REQUEST)
+
+            RefreshToken(refresh_token).blacklist()
+            return JsonResponse({"success": True, "message": "Successfully logged out."}, status=HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=HTTP_400_BAD_REQUEST)
+
 
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.all()
@@ -36,15 +67,15 @@ class LocationViewSet(viewsets.ModelViewSet):
 class ListingViewSet(viewsets.ModelViewSet):
     queryset = Listing.objects.all()
     serializer_class = ListingSerializer
+    permission_classes = [permissions.IsAuthenticated, IsHost]
+
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Filter by authenticated user
-        if self.request.user.is_anonymous:
-            return self.queryset.none()
         return self.queryset.filter(guest=self.request.user)
 
     def perform_create(self, serializer):
@@ -73,11 +104,9 @@ class BookingViewSet(viewsets.ModelViewSet):
 class PaymentListView(ListAPIView):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Filter by authenticated user
-        if self.request.user.is_anonymous:
-            return self.queryset.none()
         return self.queryset.filter(booking__guest=self.request.user)
 
 def create_chapa_payment(booking):
