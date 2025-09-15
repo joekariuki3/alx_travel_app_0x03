@@ -12,7 +12,7 @@ from .serializers import ListingSerializer, BookingSerializer, PaymentSerializer
 from .models import User, Listing, Booking, Payment, PaymentStatus, Location, BookingStatus, Role
 from .tasks import send_booking_confirmation_email, send_payment_confirmation_email
 from rest_framework_simplejwt.tokens import RefreshToken
-from .permissions import IsHost
+from .permissions import IsHost, IsGuestOrListingHost
 
 
 class RoleViewSet(viewsets.ModelViewSet):
@@ -73,10 +73,8 @@ class ListingViewSet(viewsets.ModelViewSet):
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
     serializer_class = BookingSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsGuestOrListingHost]
 
-    def get_queryset(self):
-        return self.queryset.filter(guest=self.request.user)
 
     def perform_create(self, serializer):
         guest = self.request.user
